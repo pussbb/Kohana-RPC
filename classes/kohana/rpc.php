@@ -1,16 +1,15 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-require_once Kohana::find_file('vendor', 'xmlrpc/lib/xmlrpc','inc');
-require_once Kohana::find_file('vendor', 'xmlrpc/lib/xmlrpcs','inc');
-require_once Kohana::find_file('vendor', 'xmlrpc/lib/xmlrpc_wrappers','inc');
-
 class Kohana_RPC  {
     /**
     * RPC Instance
     * @var object
     */
     protected static $instance;
-    protected $config;
+    protected static $config;
+   /*
+     *    function appaends all GLOBAL vars that declared in included files
+    */
     private function __globalvars()
     {
         $result=array();
@@ -36,13 +35,15 @@ class Kohana_RPC  {
      */
     public function before()
     {
-        $this->config = Kohana::$config->load('default');
-
+        require_once Kohana::find_file('vendor', 'xmlrpc/lib/xmlrpc','inc');
+        require_once Kohana::find_file('vendor', 'xmlrpc/lib/xmlrpcs','inc');
+        require_once Kohana::find_file('vendor', 'xmlrpc/lib/xmlrpc_wrappers','inc');
 
         foreach($this->__globalvars() as $key =>$value)
         {
             $this->{$key} = $value;
         }
+        // register all classes declared in included files
         spl_autoload_call('xmlrpcresp');
         spl_autoload_call('xmlrpcval');
         spl_autoload_call('xmlrpc_client');
@@ -53,20 +54,42 @@ class Kohana_RPC  {
 
     public function __construct()
     {
-        $this->before();
+
+        $this->before();$this->check_user();
     }
     
-    public static function factory()
+    public static function factory($config_name = 'default')
     {
-       /// $_config = Kohana::$config->load($config) ;
+        self::$config = Kohana::$config->load('rpc')->get($config_name);
         return new self();
+    }
+
+    public function check_user()
+    {
+        $config = self::$config;
+        if($config['check_user_agent'])
+        {
+            $user_agent = Request::user_agent( 'browser');
+            if($user_agent && !in_array($user_agent,$config['allowed_user_agents']))
+            {
+                exit;
+            }
+            else
+            {
+                preg_match('/'.implode($config['allowed_user_agents'],'|').'/',Request::$user_agent, $matches, PREG_OFFSET_CAPTURE)  ;
+                if(count($matches) == 0)
+                     exit;
+            }
+
+
+        }
     }
     public function xmlRPCServer($dispMap = array())
     {
         if(count($dispMap) > 0)
-            $this->xmlrpc_server = new xmlrpc_server($dispMap);
+            $this->xmlrpc_server = new xmlrpc_server($dispMap,TRUE);
         else
-            $this->xmlrpc_server = new xmlrpc_server($dispMap,0);
+            $this->xmlrpc_server = new xmlrpc_server($dispMap,FALSE);
         return $this;
     }
     /**
