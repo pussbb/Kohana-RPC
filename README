@@ -1,0 +1,4 @@
+Kohana-RPC module for XML-RPC protocol
+that uses  XML-RPC for PHP  library implementing the XML-RPC protocol,
+written in PHP. It is also known as PHPXMLRPC.
+http://phpxmlrpc.sourceforge.net/

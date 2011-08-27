@@ -5,7 +5,7 @@ class Kohana_RPC  {
     * RPC Instance
     * @var object
     */
-    protected static $instance;
+
     protected static $config;
    /*
      *    function appaends all GLOBAL vars that declared in included files
@@ -92,20 +92,4 @@ class Kohana_RPC  {
             $this->xmlrpc_server = new xmlrpc_server($dispMap,FALSE);
         return $this;
     }
-    /**
-     * Singleton pattern
-     *
-     * @access public
-     * @param  string mailer_name
-     * @return PDF
-     * 
-     **/
-    public static function instance() 
-    {
-       if ( is_null(self::$instance) ) {
-            self::$instance = new self;
-        }
-        return self::$instance;
-    }
-
 }

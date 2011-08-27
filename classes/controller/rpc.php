@@ -21,7 +21,7 @@ class Controller_RPC extends Controller {
     {
        $params = php_xmlrpc_decode($m);
 
-        $count = $params[0] + $params[1];
+       $count = $params[0] + $params[1];
        return new xmlrpcresp(new xmlrpcval($count, "int"));
     }
 }
