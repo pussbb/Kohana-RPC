@@ -46,6 +46,7 @@ td form {margin: 0;}
       set_time_limit($timeout+10);
 
     include('../lib/xmlrpc.inc');
+      include('../lib/xmlrpc_wrappers.inc');
     if ($wstype == 1)
     {
       @include('jsonrpc.inc');
