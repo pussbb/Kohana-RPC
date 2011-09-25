@@ -66,8 +66,11 @@ class Controller_RPC extends Controller {
     {
          try
          {
-             list($insert_id, $total_rows) = DB::insert('books', array('name', 'description'))
-                     ->values(array($data['bookName'], $data['bookDescription']))
+             $image_file = 'public/' . $data['bookImage'];
+             if(strpos($image_file,'.png') == FALSE)
+                $image_file = preg_replace('/\..+$/', '.' . 'png',$image_file);
+             list($insert_id, $total_rows) = DB::insert('books', array('name', 'description','image'))
+                     ->values(array($data['bookName'], $data['bookDescription'],$image_file))
                      ->execute();
 
              DB::insert('book_access', array('book_id', 'userid'))
@@ -77,7 +80,7 @@ class Controller_RPC extends Controller {
                  $data_img = base64_decode($data['image']);
                  $im = imagecreatefromstring($data_img);
                  imagesavealpha($im, TRUE);
-                 imagepng($im, DOCROOT . 'public/' . $data['bookImage'] . '.png', 5, PNG_ALL_FILTERS);
+                 imagepng($im, DOCROOT . $image_file, 5, PNG_ALL_FILTERS);
                  imagedestroy($im);
              }
              return new xmlrpcresp(new xmlrpcval($insert_id, 'int'));
