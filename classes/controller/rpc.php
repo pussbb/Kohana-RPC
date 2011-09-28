@@ -18,6 +18,12 @@ class Controller_RPC extends Controller {
                             "signature" => array(
                               array( $this->_rpc->xmlrpcInt, $this->_rpc->xmlrpcStruct)
                             )
+                          ),
+                          "qhda.catagories" => array(
+                            "function" => array($this,'categories'),
+                            "signature" => array(
+                              array( $this->_rpc->xmlrpcInt, $this->_rpc->xmlrpcArray)
+                            )
                           )
                         );
         $this->_rpc->xmlRPCServer($methods);
@@ -30,7 +36,40 @@ class Controller_RPC extends Controller {
        $count = $params[0] + $params[1];
        return new xmlrpcresp(new xmlrpcval($count, "int"));
     }
-
+    public function categories($m)
+    {
+        $params = php_xmlrpc_decode($m);
+        $book_id = Arr::path($params[0],'*.bookid');
+        try
+        {
+        $query = DB::delete('bookcat')->where('book_id','=',$book_id[0])->execute();
+        }
+        catch (Database_Exception $e)
+        {
+             return new xmlrpcresp(0, 7802, $e->getMessage());
+        }
+        $insert = DB::insert('bookcat', array('name', 'cat_id','cat_parent','book_id',));
+        foreach($params[0] as $cat)
+        {
+            $insert->values(
+                array(
+                    Arr::get($cat,'catname',''),
+                    (int)Arr::get($cat,'id',0),
+                    (int)Arr::get($cat,'parent',0),
+                    (int)Arr::get($cat,'bookid',0),
+                )
+            );
+        }
+        try
+        {
+            $insert->execute();
+        }
+        catch (Database_Exception $e)
+        {
+             return new xmlrpcresp(0, 7802, $e->getMessage());
+        }
+        return  new xmlrpcval(1, 'int');
+    }
     public function bookcheck($m)
     {
        $params = php_xmlrpc_decode($m);
@@ -44,7 +83,7 @@ class Controller_RPC extends Controller {
                                          ->find();
 
        if($member->has('roles',  ORM::factory('role', array('name' => 'login'))) == FALSE)
-           return new xmlrpcresp(0, 302,__('You are not allowed to add new books'));
+           return new xmlrpcresp(0, 401,__('You are not allowed to add new books'));
 
        $book = DB::select()->from('books')->where('name','=',$data['bookName'])
                                             ->join('book_access')
@@ -55,7 +94,7 @@ class Controller_RPC extends Controller {
              return $this->_addBook($data,$member->id);
 
        if(!in_array($member->id,Arr::pluck($book,'userid')))
-                return new xmlrpcresp(0, 302,__('You are not allowed to change somthing in this books.'));
+                return new xmlrpcresp(0, 401,__('You are not allowed to change somthing in this books.'));
 
        $book_id = Arr::pluck($book,'id');
        return new xmlrpcresp(new xmlrpcval( $book_id[0],'int'));
