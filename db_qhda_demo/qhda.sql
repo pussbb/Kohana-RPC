@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: localhost
--- Время создания: Сен 25 2011 г., 13:19
+-- Время создания: Сен 28 2011 г., 22:26
 -- Версия сервера: 5.5.8
 -- Версия PHP: 5.3.5
 
@@ -27,7 +27,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 CREATE TABLE IF NOT EXISTS `articles` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `id_articles` int(11) DEFAULT NULL,
+  `cat_id` int(11) DEFAULT NULL,
   `title` text NOT NULL,
   `content` text NOT NULL,
   `author` varchar(150) NOT NULL,
@@ -35,14 +35,16 @@ CREATE TABLE IF NOT EXISTS `articles` (
   `md5` mediumtext NOT NULL,
   `guid` mediumtext NOT NULL,
   `catid` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id_articles_UNIQUE` (`id_articles`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=3 ;
 
 --
 -- Дамп данных таблицы `articles`
 --
 
+INSERT INTO `articles` (`id`, `cat_id`, `title`, `content`, `author`, `published`, `md5`, `guid`, `catid`) VALUES
+(1, 2, 'articles[0].value', 'dsvdsvds <p>dsfsdf</p>', 'sdfsdfsdfdsfsd', '2011-10-10 00:00:00', 'dsafdsbga534r23', '{dsfsdfsdfsdfdsf}', 0),
+(2, 1, 'wererewrwe', '\n		<pre class="brush:cpp;">\n&lt;pre class=&quot;brush:cpp;&quot;&gt; in ghdfgdfg; hjhgjgh &lt;/pre&gt; &lt;p&gt; &lt;p&gt; rewrewrerewrerbtert rtw rtyjtyk&lt;/p&gt; &lt;p&gt; &nbsp;&lt;/p&gt; &lt;p&gt; werwerv retert&lt;/p&gt; rewrewrerewrerbtert rtw rtyjtyk&lt;/p&gt; &lt;p&gt; &nbsp;&lt;/p&gt; &lt;p&gt; werwerv retert&lt;/p&gt; in ghdfgdfg;\nhjhgjgh\n</pre>\n		<p>\n			&nbsp;</p>\n		<p>\n			rewrewrerewrerbtert rtw rtyjtyk</p>\n		<p>\n			&nbsp;</p>\n		<p>\n			werwerv retert</p>\n		<p>\n			rewrewrerewrerbtert rtw rtyjtyk</p>\n		<p>\n			&nbsp;</p>\n		<p>\n			&nbsp;</p>\n		<p>\n			werwerv retert</p>\n	', 'anonymous', '2011-09-04 16:01:25', '8b6dc1c2891b8680175fc5e8135c80cb', '{65c46ba7-74c8-42e7-801b-0a796c4fd255}', 0);
 
 -- --------------------------------------------------------
 
@@ -54,14 +56,21 @@ CREATE TABLE IF NOT EXISTS `bookcat` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(120) NOT NULL,
   `parent` int(11) DEFAULT '0',
-  `bookcat_id` int(11) NOT NULL,
+  `book_id` int(11) NOT NULL,
+  `cat_id` int(11) DEFAULT NULL,
+  `cat_parent` int(11) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=31 ;
 
 --
 -- Дамп данных таблицы `bookcat`
 --
 
+INSERT INTO `bookcat` (`id`, `name`, `parent`, `book_id`, `cat_id`, `cat_parent`) VALUES
+(7, 'fddasdssdsad21212dfs', 0, 29, 3, 2),
+(6, 'fddwqd2121212dfs', 0, 29, 2, 0),
+(5, 'fdsfsdfs', 0, 29, 1, 0),
+(30, 'fdsfds', 0, 31, 1, 0);
 
 -- --------------------------------------------------------
 

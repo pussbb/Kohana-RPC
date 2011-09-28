@@ -24,17 +24,59 @@ class Controller_RPC extends Controller {
                             "signature" => array(
                               array( $this->_rpc->xmlrpcInt, $this->_rpc->xmlrpcArray)
                             )
+                          ),
+                          "qhda.article" => array(
+                            "function" => array($this,'article'),
+                            "signature" => array(
+                              array( $this->_rpc->xmlrpcInt, $this->_rpc->xmlrpcStruct)
+                            )
                           )
                         );
         $this->_rpc->xmlRPCServer($methods);
 
     }
-    public function foobar($m)
+    public function article($m)
     {
        $params = php_xmlrpc_decode($m);
-
-       $count = $params[0] + $params[1];
-       return new xmlrpcresp(new xmlrpcval($count, "int"));
+       $data = $params[0];
+       $article = DB::select()->from('articles')->where('guid','=',$data['guid'])->limit(1)->as_assoc()->execute();
+       if($article->count() > 0){
+           if($article[0]['md5'] != $data['md5'])
+           {
+               try
+               {
+                   DB::update('articles')->set(array(
+                                                   'cat_id' => (int)Arr::get($data,'catid',0),
+                                                   'title'  => Arr::get($data,'title'),
+                                                   'content' => Arr::get($data,'content'),
+                                                   'author' => Arr::get($data,'author'),
+                                                   'published' => Arr::get($data,'published'),
+                                                   'md5' => Arr::get($data,'md5')
+                                               ))->where('guid','=',$data['guid'])->execute();
+               }
+               catch (Database_Exception $e)
+                {
+                     return new xmlrpcresp(0, 7802, $e->getMessage());
+                }
+           }
+           return  new xmlrpcval(1, 'int');
+       }
+       try
+       {           DB::insert('articles',array('cat_id','title' , 'content','author','published', 'md5','guid'))->values(array(
+                                 (int)Arr::get($data,'catid',0),
+                                 Arr::get($data,'title'),
+                                 Arr::get($data,'content'),
+                                 Arr::get($data,'author'),
+                                 Arr::get($data,'published'),
+                                 Arr::get($data,'md5'),
+                                 $data['guid']
+                              ))->execute();
+       }
+       catch (Database_Exception $e)
+       {
+                     return new xmlrpcresp(0, 7802, $e->getMessage());
+       }
+        return  new xmlrpcval((int)Arr::get($data,'id',0), 'int');
     }
     public function categories($m)
     {
