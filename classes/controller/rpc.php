@@ -30,10 +30,60 @@ class Controller_RPC extends Controller {
                             "signature" => array(
                               array( $this->_rpc->xmlrpcInt, $this->_rpc->xmlrpcStruct)
                             )
+                          ),
+                         "qhda.bookdown" => array(
+                            "function" => array($this,'bookdown'),
+                            "signature" => array(
+                              array( $this->_rpc->xmlrpcStruct, $this->_rpc->xmlrpcString)
+                            )
+                          ),
+                         "qhda.downloadcatagories" => array(
+                            "function" => array($this,'downloadcatagories'),
+                            "signature" => array(
+                              array( $this->_rpc->xmlrpcArray, $this->_rpc->xmlrpcInt)
+                            )
                           )
                         );
         $this->_rpc->xmlRPCServer($methods);
 
+    }
+    public function downloadcatagories($m)
+    {
+       $params = php_xmlrpc_decode($m);
+       $data = $params[0];
+       $categories = array();
+       try{
+            $categories = DB::select()->from('bookcat')->where('book_id','=',$data)->as_assoc()->execute()->as_array();
+       }
+        catch (Database_Exception $e)
+        {
+                     return new xmlrpcresp(0, 7802, $e->getMessage());
+        }
+        $result = array();
+        foreach($categories as $cat)
+        {
+            $result[] = new xmlrpcval(array(
+                'id' => new xmlrpcval($cat['cat_id'],'int'),
+                'name' => new xmlrpcval($cat['name'],'string'),
+                'parent' => new xmlrpcval($cat['cat_parent'],'int'),
+            ),'struct');
+        }
+        return new xmlrpcresp(new xmlrpcval($result, 'array'));
+    }
+    public function bookdown($m)
+    {
+       $params = php_xmlrpc_decode($m);
+       $data = $params[0];
+       $result = DB::select('books.*',array('COUNT("*")', 'total_items'))->from('books')
+                       ->join('bookcat')->on('bookcat.book_id','=','books.id')
+                       ->join('articles')->on('articles.cat_id', '=' ,'bookcat.cat_id')
+                       ->where('books.name','=',$data)->as_assoc()->execute();
+       $book = array();
+       foreach($result[0] as $key => $value)
+       {
+           $book[$key] = new xmlrpcval($value,'string');
+       }
+       return new xmlrpcresp(new xmlrpcval($book, 'struct'));
     }
     public function article($m)
     {
