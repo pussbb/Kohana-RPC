@@ -42,10 +42,64 @@ class Controller_RPC extends Controller {
                             "signature" => array(
                               array( $this->_rpc->xmlrpcArray, $this->_rpc->xmlrpcInt)
                             )
+                          ),
+                         "qhda.getarticlesids" => array(
+                            "function" => array($this,'getarticlesids'),
+                            "signature" => array(
+                              array( $this->_rpc->xmlrpcArray, $this->_rpc->xmlrpcInt)
+                            )
+                          ),
+                         "qhda.getarticle" => array(
+                            "function" => array($this,'getarticle'),
+                            "signature" => array(
+                              array( $this->_rpc->xmlrpcStruct, $this->_rpc->xmlrpcInt)
+                            )
                           )
                         );
         $this->_rpc->xmlRPCServer($methods);
 
+    }
+    public function getarticle($m)
+    {
+        $params = php_xmlrpc_decode($m);
+        $data = $params[0];
+        try
+        {
+            $results = array();
+            $db = DB::select()->from('articles')->where('id','=',$data)->as_assoc()->execute()->as_array();
+            $result = array();
+            foreach($db[0] as $key => $value)
+            {
+                $result[$key] = new xmlrpcval($value,'string');
+            }
+            return new xmlrpcresp(new xmlrpcval($result,'struct'));
+        }
+        catch (Database_Exception $e)
+        {
+            return new xmlrpcresp(0, 7802, $e->getMessage());
+        }
+    }
+    public function getarticlesids($m)
+    {
+       $params = php_xmlrpc_decode($m);
+       $data = $params[0];
+       try
+       {
+            $results = array();
+            $db = DB::select('articles.id','articles.title')->from('articles')
+            ->join('bookcat')->on('articles.cat_id', '=' ,'bookcat.cat_id')
+                    ->where('bookcat.book_id','=',$data)->execute()->as_array();
+           foreach($db as $item)
+           {
+               $results[] = new xmlrpcval(array('id' => new xmlrpcval($item['id'],'int'),
+                                               'title' => new xmlrpcval($item['title'],'string')),'struct');
+           }
+           return new xmlrpcresp(new xmlrpcval($results,'array'));
+       }
+       catch (Database_Exception $e)
+       {
+           return new xmlrpcresp(0, 7802, $e->getMessage());
+       }
     }
     public function downloadcatagories($m)
     {
