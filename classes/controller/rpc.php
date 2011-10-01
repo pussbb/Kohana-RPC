@@ -163,7 +163,7 @@ class Controller_RPC extends Controller {
                      return new xmlrpcresp(0, 7802, $e->getMessage());
                 }
            }
-           return  new xmlrpcval(1, 'int');
+           return  new xmlrpcval(Arr::get($data,'id',0), 'int');
        }
        try
        {           DB::insert('articles',array('cat_id','title' , 'content','author','published', 'md5','guid'))->values(array(
