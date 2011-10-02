@@ -206,7 +206,7 @@
 	// The encoding used internally by PHP.
 	// String values received as xml will be converted to this, and php strings will be converted to xml
 	// as if having been coded with this
-	$GLOBALS['xmlrpc_internalencoding']='ISO-8859-1';
+	$GLOBALS['xmlrpc_internalencoding']='UTF-8';
 
 	$GLOBALS['xmlrpcName']='XML-RPC for PHP';
 	$GLOBALS['xmlrpcVersion']='3.0.0.beta';
@@ -2583,14 +2583,14 @@ xmlrpc_encode_entitites($this->errstr, $GLOBALS['xmlrpc_internalencoding'], $cha
 			// we use the broadest one, ie. utf8
 			// This allows to send data which is native in various charset,
 			// by extending xmlrpc_encode_entitites() and setting xmlrpc_internalencoding
-			if (!in_array($GLOBALS['xmlrpc_internalencoding'], array('UTF-8', 'ISO-8859-1', 'US-ASCII')))
-			{
+			//if (!in_array($GLOBALS['xmlrpc_internalencoding'], array('UTF-8', 'ISO-8859-1', 'US-ASCII')))
+			//{
 				xml_parser_set_option($parser, XML_OPTION_TARGET_ENCODING, 'UTF-8');
-			}
-			else
-			{
-				xml_parser_set_option($parser, XML_OPTION_TARGET_ENCODING, $GLOBALS['xmlrpc_internalencoding']);
-			}
+			//}
+			//else
+			//{
+			///	xml_parser_set_option($parser, XML_OPTION_TARGET_ENCODING, $GLOBALS['xmlrpc_internalencoding']);
+			///}
 
 			if ($return_type == 'phpvals')
 			{

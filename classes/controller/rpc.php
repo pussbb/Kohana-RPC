@@ -143,16 +143,17 @@ class Controller_RPC extends Controller {
     {
        $params = php_xmlrpc_decode($m);
        $data = $params[0];
-       $article = DB::select()->from('articles')->where('guid','=',$data['guid'])->limit(1)->as_assoc()->execute();
-       if($article->count() > 0){
-           if($article[0]['md5'] != $data['md5'])
-           {
+       $article = DB::select()->from('articles')->where('guid','=',$data['guid'])->as_assoc()->execute()->as_array();
+       if(count($article) > 0){
+           //if($article[0]['md5'] != $data['md5'])
+          // {
                try
                {
                    DB::update('articles')->set(array(
                                                    'cat_id' => (int)Arr::get($data,'catid',0),
                                                    'title'  => Arr::get($data,'title'),
                                                    'content' => Arr::get($data,'content'),
+                                                   'url' => $this->rusToLat(Arr::get($data,'title')),
                                                    'author' => Arr::get($data,'author'),
                                                    'published' => Arr::get($data,'published'),
                                                    'md5' => Arr::get($data,'md5')
@@ -162,13 +163,14 @@ class Controller_RPC extends Controller {
                 {
                      return new xmlrpcresp(0, 7802, $e->getMessage());
                 }
-           }
+          // }
            return  new xmlrpcval(Arr::get($data,'id',0), 'int');
        }
        try
-       {           DB::insert('articles',array('cat_id','title' , 'content','author','published', 'md5','guid'))->values(array(
+       {           DB::insert('articles',array('cat_id','title','url' , 'content','author','published', 'md5','guid'))->values(array(
                                  (int)Arr::get($data,'catid',0),
                                  Arr::get($data,'title'),
+                                 $this->rusToLat( Arr::get($data,'title')),
                                  Arr::get($data,'content'),
                                  Arr::get($data,'author'),
                                  Arr::get($data,'published'),
@@ -181,6 +183,27 @@ class Controller_RPC extends Controller {
                      return new xmlrpcresp(0, 7802, $e->getMessage());
        }
         return  new xmlrpcval((int)Arr::get($data,'id',0), 'int');
+    }
+    public function rusToLat($str)
+    {
+        $tr = array(
+            "А"=>"a","Б"=>"b","В"=>"v","Г"=>"g",
+            "Д"=>"d","Е"=>"e","Ж"=>"j","З"=>"z","И"=>"i",
+            "Й"=>"y","К"=>"k","Л"=>"l","М"=>"m","Н"=>"n",
+            "О"=>"o","П"=>"p","Р"=>"r","С"=>"s","Т"=>"t",
+            "У"=>"u","Ф"=>"f","Х"=>"h","Ц"=>"ts","Ч"=>"ch",
+            "Ш"=>"sh","Щ"=>"sch","Ъ"=>"","Ы"=>"yi","Ь"=>"",
+            "Э"=>"e","Ю"=>"yu","Я"=>"ya","а"=>"a","б"=>"b",
+            "в"=>"v","г"=>"g","д"=>"d","е"=>"e","ж"=>"j",
+            "з"=>"z","и"=>"i","й"=>"y","к"=>"k","л"=>"l",
+            "м"=>"m","н"=>"n","о"=>"o","п"=>"p","р"=>"r",
+            "с"=>"s","т"=>"t","у"=>"u","ф"=>"f","х"=>"h",
+            "ц"=>"ts","ч"=>"ch","ш"=>"sh","щ"=>"sch","ъ"=>"y",
+            "ы"=>"yi","ь"=>"","э"=>"e","ю"=>"yu","я"=>"ya",
+            " "=> "_", "."=> "", "/"=> "_"
+        );
+
+        return strtr($str,$tr);
     }
     public function categories($m)
     {
