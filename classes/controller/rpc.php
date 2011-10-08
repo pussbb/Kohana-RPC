@@ -87,8 +87,8 @@ class Controller_RPC extends Controller {
        {
             $results = array();
             $db = DB::select('articles.id','articles.title')->from('articles')
-            ->join('bookcat')->on('articles.cat_id', '=' ,'bookcat.cat_id')
-                    ->where('bookcat.book_id','=',$data)->execute()->as_array();
+                    ->join('bookcat')->on('articles.cat_id', '=' ,'bookcat.cat_id')
+                    ->where('bookcat.book_id','=',$data)->and_where('articles.catid', '=' ,$data)->execute()->as_array();
            foreach($db as $item)
            {
                $results[] = new xmlrpcval(array('id' => new xmlrpcval($item['id'],'int'),
@@ -128,10 +128,12 @@ class Controller_RPC extends Controller {
     {
        $params = php_xmlrpc_decode($m);
        $data = $params[0];
-       $result = DB::select('books.*',array('COUNT("*")', 'total_items'))->from('books')
+       /*$result = DB::select('books.*',array('COUNT("*")', 'total_items'))->from('books')
                        ->join('bookcat')->on('bookcat.book_id','=','books.id')
-                       ->join('articles')->on('articles.cat_id', '=' ,'bookcat.cat_id')
-                       ->where('books.name','=',$data)->as_assoc()->execute();
+                       ->join('articles')->on('articles.cat_id', '=' ,'bookcat.cat_id') ///on('articles.cat_id', '=' ,'bookcat.cat_id')
+                       ->where('books.name','=',$data)->and_where('articles.catid','=','books.id')->as_assoc()->execute();
+       */
+       $result=DB::query(Database::SELECT,'SELECT `books`.*, COUNT(*) AS `total_items` FROM `books` JOIN `bookcat` ON (`bookcat`.`book_id` = `books`.`id`) JOIN `articles` ON (`articles`.`cat_id` = `bookcat`.`cat_id`) WHERE `books`.`name` = \''.$data.'\' and `articles`.`catid` = `books`.`id`')->as_assoc()->execute();
        $book = array();
        foreach($result[0] as $key => $value)
        {
@@ -156,7 +158,8 @@ class Controller_RPC extends Controller {
                                                    'url' => $this->rusToLat(Arr::get($data,'title')),
                                                    'author' => Arr::get($data,'author'),
                                                    'published' => Arr::get($data,'published'),
-                                                   'md5' => Arr::get($data,'md5')
+                                                   'md5' => Arr::get($data,'md5'),
+                                                   'catid' => Arr::get($data,'bookid')
                                                ))->where('guid','=',$data['guid'])->execute();
                }
                catch (Database_Exception $e)
@@ -167,7 +170,7 @@ class Controller_RPC extends Controller {
            return  new xmlrpcval(Arr::get($data,'id',0), 'int');
        }
        try
-       {           DB::insert('articles',array('cat_id','title','url' , 'content','author','published', 'md5','guid'))->values(array(
+       {           DB::insert('articles',array('cat_id','title','url' , 'content','author','published', 'md5','guid','catid'))->values(array(
                                  (int)Arr::get($data,'catid',0),
                                  Arr::get($data,'title'),
                                  $this->rusToLat( Arr::get($data,'title')),
@@ -175,7 +178,8 @@ class Controller_RPC extends Controller {
                                  Arr::get($data,'author'),
                                  Arr::get($data,'published'),
                                  Arr::get($data,'md5'),
-                                 $data['guid']
+                                 $data['guid'],
+                                 Arr::get($data,'bookid')
                               ))->execute();
        }
        catch (Database_Exception $e)
